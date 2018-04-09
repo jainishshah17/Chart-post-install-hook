@@ -1,0 +1,38 @@
+{{- if .Values.mongodb.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-create-bucket"
+  labels:
+    app: {{ template "hook-test.fullname" . }}
+    component: mongodb
+  annotations:
+    "helm.sh/hook": post-install
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ template "hook-test.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      {{- end }}
+      restartPolicy: OnFailure
+      containers:
+      - name: post-install-job
+        image: "mvertes/alpine-mongo"
+        command:
+        - 'sh'
+        - '-c'
+        - >
+          until nc -z -w 2 {{ .Release.Name }}-mongodb 27017 && echo mongodb ok; do sleep 2; done; chmod +x /scripts/setup.sh; /scripts/setup.sh > setup-$(date +%Y%m%d%H%M%S).log 2>&1; echo "Setup done";
+        volumeMounts:
+        - name: mongodb-setup
+          mountPath: "/scripts"
+      volumes:
+      - name: mongodb-setup
+        configMap:
+          name: {{ template "hook-test.fullname" . }}-setup-script
+{{- end }}

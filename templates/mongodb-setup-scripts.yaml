@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "hook-test.fullname" . }}-setup-script
+  labels:
+    app: {{ template "hook-test.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+data:
+  setup.sh: |
+    #!/bin/sh
+    # Setup script to create MongoDB users
+
+    errorExit () {
+      echo; echo "ERROR: $1"; echo; exit 1
+    }
+
+    echo "Waiting for mongodb to come up"
+    until mongo --host {{ .Release.Name }}-mongodb --port 27017 --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+    echo "Waiting for db availability"
+    sleep 2
+    done
+    echo "DB ready. Configuring..."
+    mongo --host {{ .Release.Name }}-mongodb --port 27017 < /scripts/createMongoDBUsers.js || errorExit "DB user setup failed"
+    echo "DB config done"
+
+  createMongoDBUsers.js: |
+    // Default admin user
+    var adminUser = {
+        user: "{{ .Values.db.adminUser }}",
+        pwd: "{{ .Values.db.adminPassword }}"
+
+    };
+
+    // Create the admin user
+    adminUser.roles = ["root"];
+    adminUser.customData = {
+        createdBy: "Test installer"
+    };
+    db.getSiblingDB(adminUser.user).auth(adminUser.user, adminUser.pwd) || db.getSiblingDB(adminUser.user).createUser(adminUser);
+
+
+
+
