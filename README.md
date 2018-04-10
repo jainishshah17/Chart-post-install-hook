@@ -1,5 +1,12 @@
 # Chart-post-install-hook
 
+Are you using Helm Charts to deploy you application in Kubernetes. 
+If you have dependency on other services like `mongodb`, `postgresql` or `redis` and you want to modify it to add more users or create multiple database.
+You can use Kubernetes Jobs with ```"helm.sh/hook": post-install```
+
+In this example I am creating 2 users in MongoDb deployment using  post-install hook.
+See the [create-user.yaml](/templates/hooks/create-user.yaml) and [mongodb-setup-scripts.yaml](/templates/mongodb-setup-scripts.yaml) file.
+
 ## Prerequisites Details
 
 * Kubernetes 1.6+
