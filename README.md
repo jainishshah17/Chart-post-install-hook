@@ -1,7 +1,5 @@
 # Chart-post-install-hook
 
-## [Source of Example Application](https://github.com/jainishshah17/express-mongo-crud) 
-
 ## Prerequisites Details
 
 * Kubernetes 1.6+
