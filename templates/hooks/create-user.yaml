@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: "{{ .Release.Name }}-create-bucket"
+  name: "{{ .Release.Name }}-create-user"
   labels:
     app: {{ template "hook-test.fullname" . }}
     component: mongodb
@@ -26,8 +26,7 @@ spec:
         command:
         - 'sh'
         - '-c'
-        - >
-          until nc -z -w 2 {{ .Release.Name }}-mongodb 27017 && echo mongodb ok; do sleep 2; done; chmod +x /scripts/setup.sh; /scripts/setup.sh > setup-$(date +%Y%m%d%H%M%S).log 2>&1; echo "Setup done";
+        - 'sh /scripts/setup.sh'
         volumeMounts:
         - name: mongodb-setup
           mountPath: "/scripts"

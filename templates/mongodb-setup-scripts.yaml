@@ -26,20 +26,34 @@ data:
     echo "DB config done"
 
   createMongoDBUsers.js: |
-    // Default admin user
+    // Creating default admin user
     var adminUser = {
         user: "{{ .Values.db.adminUser }}",
-        pwd: "{{ .Values.db.adminPassword }}"
+        pwd: "{{ .Values.db.adminPassword }}",
+        roles: ["root"],
+        customData: {
+            createdBy: "App installer"
+        }
+    }
+    db.getSiblingDB("admin").createUser(adminUser)
 
-    };
+    // Creating default app user
+    var appUser = {
+        user: "{{ .Values.db.nodeUser }}",
+        pwd: "{{ .Values.db.nodePassword }}",
+        roles: ["dbOwner"],
+        customData: {
+            createdBy: "App installer"
+        }
+    }
+    // Authenticating as admin to create user
+    var loginOutput = db.getSiblingDB("admin").auth(adminUser.user,adminUser.pwd)
+    db.getSiblingDB("{{ .Values.db.nodeUser }}").createUser(appUser)
 
-    // Create the admin user
-    adminUser.roles = ["root"];
-    adminUser.customData = {
-        createdBy: "Test installer"
-    };
-    db.getSiblingDB(adminUser.user).auth(adminUser.user, adminUser.pwd) || db.getSiblingDB(adminUser.user).createUser(adminUser);
 
+    // Check if user exists before creation
+    function createUserDB(dbName, dbUser) {
+        db.getSiblingDB(dbName).getUser(dbUser.user) || db.getSiblingDB(dbName).createUser(dbUser);
+    }
 
-
-
+    createUserDB("{{ .Values.db.name }}", appUser);

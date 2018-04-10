@@ -19,36 +19,51 @@ spec:
         app: {{ template "hook-test.name" . }}
         release: {{ .Release.Name }}
     spec:
+      initContainers:
+      - name: init-data
+        image: "{{ .Values.initContainerImage }}"
+        command:
+        - 'sh'
+        - '-c'
+        - >
+          until nc -z -w 2 {{ .Release.Name }}-mongodb 27017 && echo mongodb ok;
+            do sleep 2;
+          done
       containers:
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.internalPort }}
-              protocol: TCP
-          env:
-            - name: DATABASE_URL
-              value: 'mongodb://{{ .Release.Name }}-mongodb:27017/test
-          livenessProbe:
-            httpGet:
-              path: /
-              port: {{ .Values.service.internalPort }}
-          readinessProbe:
-            httpGet:
-              path: /
-              port: {{ .Values.service.internalPort }}
-          resources:
-{{ toYaml .Values.resources | indent 12 }}
-    {{- with .Values.nodeSelector }}
-      nodeSelector:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.affinity }}
-      affinity:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.tolerations }}
-      tolerations:
-{{ toYaml . | indent 8 }}
-    {{- end }}
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.internalPort }}
+          protocol: TCP
+        env:
+        - name: DATABASE_URL
+          value: 'mongodb://{{ .Values.db.nodeUser }}:{{ .Values.db.nodePassword }}@{{ .Release.Name }}-mongodb:27017/{{ .Values.db.name }}'
+        livenessProbe:
+          httpGet:
+            path: '/health'
+            port: {{ .Values.service.internalPort }}
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          failureThreshold: 10
+        readinessProbe:
+          httpGet:
+            path: '/health'
+            port: {{ .Values.service.internalPort }}
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          failureThreshold: 10
+        volumeMounts:
+        - name: logs
+          mountPath: {{ .Values.persistence.mountPath | quote }}
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+      volumes:
+      - name: logs
+      {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingClaim | default (include "hook-test.fullname" .) }}
+      {{- else }}
+        emptyDir: {}
+      {{- end }}
