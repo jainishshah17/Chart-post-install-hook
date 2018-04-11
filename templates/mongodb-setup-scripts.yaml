@@ -57,3 +57,10 @@ data:
     }
 
     createUserDB("{{ .Values.db.name }}", appUser);
+    db.users.insert({name:"Jainish Shah", age:27, email:"jainishshah@yahoo.com"});
+    db.users.insert({name:"Elon Mask", age:46, email:"elonm@tesla.com"});
+    db.users.insert({name:"Jack Ma", age:53, email:"jackm@alibaba.com"});
+
+
+
+
