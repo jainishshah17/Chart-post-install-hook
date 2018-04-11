@@ -40,7 +40,7 @@ service:
   internalPort: 3000
   externalPort: 80
 
-## Persist data to a persitent volume
+## Persist data to a persistent volume
 persistence:
   enabled: true
 
