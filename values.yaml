@@ -4,6 +4,7 @@
 
 replicaCount: 1
 initContainerImage: "alpine:3.6"
+imagePullSecrets:
 
 ingress:
   enabled: false

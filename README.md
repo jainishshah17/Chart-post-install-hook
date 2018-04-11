@@ -25,6 +25,17 @@ To install the chart with the release name `Node App`:
 $ helm install --name hook ./
 ```
 
+## To pull docker images from Private Docker Registry
+```bash
+# Create a kubectl secret to pull from private docker registry
+$ kubectl create secret docker-registry regsecret --docker-server=https://my.docker.registry --docker-username=<USER> --docker-password=<API_KEY> --docker-email=<EMAIL>
+```
+
+Once created, Use it to install Charts
+```bash
+$ helm install --name hook --set imagePullSecrets=regsecret ./
+```
+
 
 ## Configuration
 

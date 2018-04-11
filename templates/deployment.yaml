@@ -24,6 +24,10 @@ spec:
         app: {{ template "hook-test.name" . }}
         release: {{ .Release.Name }}
     spec:
+    {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagePullSecrets }}
+    {{- end }}
       initContainers:
       - name: init-data
         image: "{{ .Values.initContainerImage }}"
