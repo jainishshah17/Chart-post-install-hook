@@ -22,6 +22,11 @@ ingress:
 
 mongodb:
   enabled: true
+  ## Make sure the --wiredTigerCacheSizeGB is no more than half the memory limit!
+  ## This is critical to protect against OOMKill by Kubernetes!
+  # mongodbExtraFlags:
+  # - "--wiredTigerCacheSizeGB=1"
+  usePassword: false
 
 db:
   name: test

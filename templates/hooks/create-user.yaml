@@ -5,6 +5,7 @@ metadata:
   name: "{{ .Release.Name }}-create-user"
   labels:
     app: {{ template "hook-test.fullname" . }}
+    release: {{ .Release.Name }}
     component: mongodb
   annotations:
     "helm.sh/hook": post-install
